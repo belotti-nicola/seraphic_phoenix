@@ -21,6 +21,8 @@ bool sp_csvreader_next(sp_csvreader *reader)
 
     char c;
     size_t counter = 0;
+    bool first_slash_found = false;
+    bool comment = false;
     while(true)
     {
         if(counter == BUFFER_SIZE) break;
@@ -29,8 +31,27 @@ bool sp_csvreader_next(sp_csvreader *reader)
         
         if(c == EOF) break;
 
-        if(c == '\r' || c == '\n' || c == '\t') continue;
-            
+        if(c == '\r' || c == '\n' || c == '\t') 
+        {
+            comment = false;
+            continue;
+        }
+
+        if(comment == true) continue;
+
+        if(c == '/' && first_slash_found == false)
+        {
+            first_slash_found = true;
+            continue;
+        }
+
+        if(c == '/' && first_slash_found == true)
+        {
+            first_slash_found = false;
+            comment = true;
+            continue;
+        }
+
         if(c != ';')
         {
             reader->buffer[counter] = c;
@@ -55,6 +76,11 @@ bool sp_csvreader_next(sp_csvreader *reader)
             case 0:
             {
                 if(c == '\n' || c == '\t' || c == '\r' || c == ' ') break;
+
+                if(c == '/')
+                {
+
+                }
 
                 size_t offset = reader->records_size;
                 if(c == '"')

@@ -24,26 +24,36 @@ int main()
 
     if(csvReader.records_size != 3)
     {
+        TRACE_ERROR_POSITION();
+        TEST_INFO("records_size: %ld",csvReader.records_size);
         return 1;
     }
 
     if(strcmp(csvReader.records[0],"usr") != 0)
     {
+        TRACE_ERROR_POSITION();
+        TEST_INFO("strcmp fail: %s",csvReader.records[0]);
         return 1;
     }
 
     if(strcmp(csvReader.records[1],"aa") != 0)
     {
+        TRACE_ERROR_POSITION();
+        TEST_INFO("strcmp fail: %s",csvReader.records[1]);
         return 1;
     }
 
     if(strcmp(csvReader.records[2],"mm") != 0)
     {
+        TRACE_ERROR_POSITION();
+        TEST_INFO("strcmp fail: %s",csvReader.records[2]);
         return 1;
     }
     
     if(sp_csvreader_next(&csvReader) == true)
     {
+        TRACE_ERROR_POSITION();
+        TEST_INFO("sp_csvreader_next fail: there is more than one record");
         return 1;
     }
 

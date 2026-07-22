@@ -10,9 +10,6 @@ function(add_seraphic_phoenix_test test_name source_file)
 endfunction()
 
 
-add_seraphic_phoenix_test(TestSimpleTest sp_simple_test.c)
-
-
 set(TEST_DATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/test_data")
 set(TEST_DATA_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/test_data")
 
@@ -27,3 +24,8 @@ add_custom_target(copy_test_data ALL
 if(TARGET seraphic_phoenix_tests) # nome dell'eseguibile dei tuoi test
     add_dependencies(seraphic_phoenix_tests copy_test_data)
 endif()
+
+
+add_seraphic_phoenix_test(TestInit       sp_init.c)
+add_seraphic_phoenix_test(TestSimpleTest sp_simple_test.c)
+add_seraphic_phoenix_test(TestCommented  sp_commented.c)
