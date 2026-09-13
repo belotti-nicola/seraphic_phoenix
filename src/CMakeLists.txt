@@ -1,6 +1,6 @@
 add_library(seraphic_phoenix STATIC
     datastructures/sp_queue.c
-    datastructures/sp_ringbuffer.c
+    datastructures/sp_ring_buffer.c
     formats/sp_csvreader.c
     utils/sp_utils.c
 )
