@@ -15,3 +15,5 @@ target_include_directories(seraphic_phoenix
         # Visibile SOLO durante la compilazione dei file .c in src/
         ${CMAKE_SOURCE_DIR}/include/internal
 )
+
+target_link_libraries(seraphic_phoenix PRIVATE atomic)

@@ -1,18 +1,25 @@
 #ifndef SP_MPSC_STREAMBUFFER
 #define SP_MPSC_STREAMBUFFER
 
+#include <internal/datastructures/utility/safe_linear_buffer.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdatomic.h>
 
-typedef struct sp_mpsc_streambuffer
-{
-    uint8_t *data;
-    size_t   data_size;
+typedef unsigned __int128 uint128_t;
 
+//16 BYTE ALIGNMENT TO ENSURE HARDWARE ATOMICITY
+typedef struct __attribute__((aligned(16))) sp_mpsc_streambuffer
+{
+    safe_buffer_t *buffer;
+
+    uint128_t producers_data;
+    uint128_t consumer_data;
 
 } sp_mpsc_streambuffer;
+
+bool sp_mpsc_sb_init(sp_mpsc_streambuffer *mpsc_sb, safe_buffer_t *safe_buffer);
 
 bool sp_mpsc_sb_push(
     sp_mpsc_streambuffer *sb,

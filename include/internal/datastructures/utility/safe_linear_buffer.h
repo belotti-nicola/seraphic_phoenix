@@ -10,9 +10,6 @@ typedef struct safe_buffer_t
     uint8_t *buffer;
     size_t   buffer_size;
 
-    size_t start;
-    size_t out;
-
 } safe_buffer_t;
 
 /**
