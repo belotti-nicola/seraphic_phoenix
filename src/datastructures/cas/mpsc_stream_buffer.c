@@ -6,16 +6,14 @@
 
 bool sp_mpsc_sb_init(sp_mpsc_streambuffer *mpsc_sb, safe_buffer_t *safe_buffer)
 {
-    if (mpsc_sb == NULL || safe_buffer == NULL) return false;
-
-    if(mpsc_sb->buffer == NULL) return false;
-
-    if(safe_buffer->buffer == NULL || safe_buffer->buffer_size == 0 ) return false;
+    if (mpsc_sb == NULL || safe_buffer == NULL ) return false;
 
     mpsc_sb->buffer = safe_buffer;
 
     atomic_init(&mpsc_sb->producers_data,0);
     atomic_init(&mpsc_sb->consumer_data,0);
+
+    mpsc_sb->futexp = 0;
     
     return true;
 }
@@ -27,7 +25,7 @@ bool sp_mpsc_sb_push(sp_mpsc_streambuffer *sb, uint8_t *buff, size_t buff_size)
     size_t max_size = sb->buffer->buffer_size;
     if (max_size == 0) return false;
 
-    uint128_t expected = atomic_load(&sb->producers_data);
+    uint128_t expected = 0;
     uint128_t desired = 0;
 
     uint64_t reserved_push_index = 0;
@@ -43,6 +41,8 @@ bool sp_mpsc_sb_push(sp_mpsc_streambuffer *sb, uint8_t *buff, size_t buff_size)
             continue;
         }
 
+        expected = atomic_load(&sb->producers_data);
+
         uint64_t push_index   = (uint64_t)(expected >> 64);
         uint64_t consumer_pos = (uint64_t)(atomic_load(&sb->consumer_data) >> 64);
 
@@ -54,9 +54,7 @@ bool sp_mpsc_sb_push(sp_mpsc_streambuffer *sb, uint8_t *buff, size_t buff_size)
 
         if (current_size + buff_size > max_size) 
         {
-            sleep(100);//FUTEX IMPLEMENTATION GOES HERE
-            reservation_i++;
-            expected = atomic_load(&sb->producers_data);
+            futex_wait(&sb->futexp,FUTEX_LOCKED);
             continue;
         }
 
@@ -127,7 +125,7 @@ bool sp_mpsc_sb_pop(sp_mpsc_streambuffer *sb, uint8_t *buff, size_t buff_size)
         uint128_t producer_val = atomic_load(&sb->producers_data);
 
         read_index  = (uint64_t)(consumer_val >> 64);
-        write_index = (uint64_t)(producer_val >> 64); // Indice dei produttori
+        write_index = (uint64_t)(producer_val >> 64); 
 
         if (write_index >= read_index) 
         {
@@ -158,6 +156,8 @@ bool sp_mpsc_sb_pop(sp_mpsc_streambuffer *sb, uint8_t *buff, size_t buff_size)
     uint128_t new_consumer_val = ((uint128_t)new_read_index << 64) | consumer_version;
 
     atomic_store(&sb->consumer_data, new_consumer_val);
+
+    futex_wake(&sb->futexp,FUTEX_UNLOCKED);
 
     return true;
 }

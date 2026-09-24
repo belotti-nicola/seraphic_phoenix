@@ -11,3 +11,5 @@ endfunction()
 
 add_seraphic_phoenix_test(TestMPSCSBCreation test_mpsc_sb_creation.c)
 add_seraphic_phoenix_test(TestMPSCSBSimple   test_mpsc_sb_simple.c)
+add_seraphic_phoenix_test(TestMPSCSBStress   test_mpsc_stress.c)
+

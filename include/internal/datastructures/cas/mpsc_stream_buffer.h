@@ -2,6 +2,8 @@
 #define SP_MPSC_STREAMBUFFER
 
 #include <internal/datastructures/utility/safe_linear_buffer.h>
+#include <internal/datastructures/utility/futex.h>
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -16,6 +18,8 @@ typedef struct __attribute__((aligned(16))) sp_mpsc_streambuffer
 
     uint128_t producers_data;
     uint128_t consumer_data;
+
+    futex_t   futexp;
 
 } sp_mpsc_streambuffer;
 

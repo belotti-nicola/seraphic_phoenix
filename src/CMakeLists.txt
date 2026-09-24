@@ -2,6 +2,7 @@ add_library(seraphic_phoenix STATIC
     datastructures/sp_queue.c
     datastructures/sp_ring_buffer.c
     datastructures/cas/mpsc_stream_buffer.c
+    datastructures/utility/futex.c
     datastructures/utility/safe_linear_buffer.c
     formats/sp_csvreader.c
     utils/sp_utils.c
