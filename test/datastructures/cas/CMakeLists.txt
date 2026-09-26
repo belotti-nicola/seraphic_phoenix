@@ -9,7 +9,8 @@ function(add_seraphic_phoenix_test test_name source_file)
         PROPERTIES TIMEOUT 5)
 endfunction()
 
-add_seraphic_phoenix_test(TestMPSCSBCreation test_mpsc_sb_creation.c)
-add_seraphic_phoenix_test(TestMPSCSBSimple   test_mpsc_sb_simple.c)
-add_seraphic_phoenix_test(TestMPSCSBStress   test_mpsc_stress.c)
+add_seraphic_phoenix_test(TestMPSCSBCreation        test_mpsc_sb_creation.c)
+add_seraphic_phoenix_test(TestMPSCSBSimplePushPop   test_mpsc_sb_simple_push_pop.c)
+add_seraphic_phoenix_test(TestMPSCSBSimplePeekAdv   test_mpsc_sb_simple_peek_adv.c)
+add_seraphic_phoenix_test(TestMPSCSBStress          test_mpsc_stress.c)
 

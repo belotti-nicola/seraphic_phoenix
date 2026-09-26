@@ -10,10 +10,12 @@ bool sp_mpsc_sb_init(sp_mpsc_streambuffer *mpsc_sb, safe_buffer_t *safe_buffer)
 
     mpsc_sb->buffer = safe_buffer;
 
-    atomic_init(&mpsc_sb->producers_data,0);
-    atomic_init(&mpsc_sb->consumer_data,0);
+    atomic_init(&mpsc_sb->producers_index,0);
+    atomic_init(&mpsc_sb->producers_commit,0);
+    atomic_init(&mpsc_sb->consumer_index,0);
 
-    mpsc_sb->futexp = 0;
+    mpsc_sb->futex_empty = 0;
+    mpsc_sb->futex_full  = 0;
     
     return true;
 }
@@ -25,76 +27,24 @@ bool sp_mpsc_sb_push(sp_mpsc_streambuffer *sb, uint8_t *buff, size_t buff_size)
     size_t max_size = sb->buffer->buffer_size;
     if (max_size == 0) return false;
 
-    uint128_t expected = 0;
-    uint128_t desired = 0;
+    // RESERVATION
+    // no particular reservation loop is needed since the hardware can take care of it
+    size_t offset = atomic_fetch_add(&sb->producers_index,buff_size);
 
-    uint64_t reserved_push_index = 0;
-
-    // --- RESERVATION ---
-    int reservation_i = 0;
-    do
-    {
-        if (reservation_i == B4_YIELD) 
-        {
-            reservation_i = 0;
-            sched_yield();
-            continue;
-        }
-
-        expected = atomic_load(&sb->producers_data);
-
-        uint64_t push_index   = (uint64_t)(expected >> 64);
-        uint64_t consumer_pos = (uint64_t)(atomic_load(&sb->consumer_data) >> 64);
-
-        uint64_t current_size = 0;
-        if (push_index >= consumer_pos) 
-            current_size = push_index - consumer_pos;
-        else 
-            current_size = max_size - (consumer_pos - push_index);
-
-        if (current_size + buff_size > max_size) 
-        {
-            futex_wait(&sb->futexp,FUTEX_LOCKED);
-            continue;
-        }
-
-        reserved_push_index     = push_index;
-        uint64_t new_push_index = push_index + buff_size;
-        
-        uint64_t low_part = (uint64_t)(expected & 0xFFFFFFFFFFFFFFFFULL) + 1;
-        desired = ((uint128_t)new_push_index << 64) | low_part;
-
-        reservation_i++;
-    } 
-    while (!atomic_compare_exchange_strong(&sb->producers_data, &expected, desired));
-
-    size_t offset = (size_t)(reserved_push_index % max_size);
-    if (sb_copy_in(sb->buffer, offset, buff, buff_size) == false)
+    if (sb_copy_in(sb->buffer, offset % max_size, buff, buff_size) == false)
     {
        return false;
     }
 
-    uint128_t commit_expected = atomic_load(&sb->producers_data);
-    uint128_t commit_desired = 0;
-    int commit_i = 0;
-    
-    do
+    // COMMIT LOOP :
+    // acquire/release usage
+    // we "sleep" untill offset is the one threads figured (other threads could be still committing or have not committed)
+    while ( atomic_load_explicit(&sb->producers_commit, memory_order_acquire) != offset )
     {
-        if (commit_i == B4_YIELD) 
-        {
-            commit_i = 0;
-            sched_yield();
-            continue;
-        }
-
-        uint64_t push_hi = (uint64_t)(commit_expected >> 64);
-        uint64_t push_lo = (uint64_t)(commit_expected & 0xFFFFFFFFFFFFFFFFULL);
-        
-        commit_desired = ((uint128_t)push_hi << 64) | (push_lo); 
-
-        commit_i++;
+        sched_yield();
     }
-    while (!atomic_compare_exchange_strong(&sb->producers_data, &commit_expected, commit_desired));
+    atomic_store_explicit(&sb->producers_commit, offset + buff_size, memory_order_release);
+
 
     return true;
 }
@@ -106,68 +56,44 @@ bool sp_mpsc_sb_pop(sp_mpsc_streambuffer *sb, uint8_t *buff, size_t buff_size)
     size_t max_size = sb->buffer->buffer_size;
     if (max_size == 0) return false;
 
-    uint64_t read_index = 0;
-    uint64_t write_index = 0;
-    uint64_t available_data = 0;
-    uint128_t consumer_val = 0;
+    uint64_t offset = atomic_load_explicit( &sb->consumer_index, memory_order_relaxed );
 
-    int i = 0;
-
-    while (true)
-    {
-        if (i == B4_YIELD) 
-        {
-            sched_yield();
-            i = 0;
-        }
-
-        consumer_val = atomic_load(&sb->consumer_data);
-        uint128_t producer_val = atomic_load(&sb->producers_data);
-
-        read_index  = (uint64_t)(consumer_val >> 64);
-        write_index = (uint64_t)(producer_val >> 64); 
-
-        if (write_index >= read_index) 
-        {
-            available_data = write_index - read_index;
-        } 
-        else 
-        {
-            available_data = max_size - (read_index - write_index);
-        }
-
-        if (available_data >= buff_size) 
-        {
-            break;
-        }
-
-        i++;
-    }
-
-    size_t offset = (size_t)(read_index % max_size);
-    if (sb_copy_out(sb->buffer, offset, buff, buff_size) == false)
+    if ( sb_copy_out(sb->buffer,offset,buff,buff_size) == false )
     {
         return false;
     }
 
-    uint64_t new_read_index = read_index + buff_size;
-    
-    uint64_t consumer_version = (uint64_t)(consumer_val & 0xFFFFFFFFFFFFFFFFULL) + 1;
-    uint128_t new_consumer_val = ((uint128_t)new_read_index << 64) | consumer_version;
-
-    atomic_store(&sb->consumer_data, new_consumer_val);
-
-    futex_wake(&sb->futexp,FUTEX_UNLOCKED);
+    atomic_store_explicit( &sb->consumer_index,offset + buff_size, memory_order_relaxed );
 
     return true;
 }
 
-bool sp_mpsc_sb_peek(sp_mpsc_streambuffer *sb, uint8_t *buff, size_t buff_size)
+bool sp_mpsc_sb_peek(sp_mpsc_streambuffer *sb, uint8_t *out, size_t size)
 {
+    if (  sb == NULL ) return false;
+ 
+    if ( out == NULL || size == 0 ) return false;
+
+    uint64_t offset = atomic_load_explicit( &sb->consumer_index, memory_order_relaxed );
+
+    if ( sb_copy_out(sb->buffer,offset,out,size) == false )
+    {
+        return false;
+    }
+
     return true;
 }
 
-bool sp_mpsc_sb_advance(sp_mpsc_streambuffer *sb, size_t buff_size)
+bool sp_mpsc_sb_advance(sp_mpsc_streambuffer *sb, size_t size)
 {
+    if (  sb == NULL ) return false;
+ 
+    if ( size == 0 ) return false;
+
+    uint64_t offset = atomic_load_explicit( &sb->consumer_index, memory_order_acquire );
+
+    atomic_store_explicit( &sb->consumer_index,offset + size, memory_order_acquire );
+
     return true;
+
 }

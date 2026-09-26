@@ -4,21 +4,26 @@
 #include <stdbool.h>
 #include <pthread.h>
 
-#define THREADS           8
-#define MESSAGE_LEN      50
-#define BUFFER_SIZE    8192
-#define MESSAGES        200
-#define MESSAGES_LEN     20
+#define BUFFER_SIZE        8192
+#define THREADS               8
+#define MESSAGES         200000
+#define MESSAGES_LEN         20
 
 void *consumer_function(void *arg)
 {
+    bool pop_exit_code;
+
     sp_mpsc_streambuffer *sb = (sp_mpsc_streambuffer *)arg;
 
-    uint8_t buff[BUFFER_SIZE] = {0};
+    uint8_t buff[MESSAGES_LEN] = {0};
 
     for (int i = 0; i< MESSAGES * THREADS ; i++)
     {
-        sp_mpsc_sb_pop(sb,buff,BUFFER_SIZE);
+        sp_mpsc_sb_pop(sb,buff,MESSAGES_LEN);
+        if ( pop_exit_code == false )
+        {
+            perror("PUSH FAIL");
+        }
     }
 
     return NULL;
@@ -26,13 +31,18 @@ void *consumer_function(void *arg)
 
 void *producers_function(void *arg)
 {
+    bool push_exit_code;
+
     sp_mpsc_streambuffer *sb = (sp_mpsc_streambuffer *)arg;
 
-    uint8_t buff[BUFFER_SIZE] = {0};
-
+    uint8_t buff[MESSAGES_LEN] = {0};
     for (int i = 0; i< MESSAGES ; i++)
     {
-        sp_mpsc_sb_push(sb,buff,BUFFER_SIZE);
+        push_exit_code = sp_mpsc_sb_push(sb,buff,MESSAGES_LEN);
+        if ( push_exit_code == false )
+        {
+            perror("PUSH FAIL");
+        }
     }
 
     return NULL;
@@ -41,9 +51,9 @@ void *producers_function(void *arg)
 int main()
 {
     bool exit_code;
-    uint8_t buffer[BUFFER_SIZE];    
+    uint8_t buffer[BUFFER_SIZE] = {0};    
     
-    safe_buffer_t safe_buffer;
+    safe_buffer_t safe_buffer = {0};
     exit_code = sb_init(&safe_buffer,buffer,BUFFER_SIZE);
     if (exit_code == false)
     {
@@ -51,7 +61,7 @@ int main()
         return 1;
     }
     
-    sp_mpsc_streambuffer sb;
+    sp_mpsc_streambuffer sb = {0};
     exit_code = sp_mpsc_sb_init(&sb,&safe_buffer);
     if (exit_code == false)
     {

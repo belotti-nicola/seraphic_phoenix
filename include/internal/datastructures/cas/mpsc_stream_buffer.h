@@ -16,10 +16,13 @@ typedef struct __attribute__((aligned(16))) sp_mpsc_streambuffer
 {
     safe_buffer_t *buffer;
 
-    uint128_t producers_data;
-    uint128_t consumer_data;
+    uint64_t  producers_index;
+    uint64_t  producers_commit;
+    
+    uint64_t  consumer_index;
 
-    futex_t   futexp;
+    futex_t   futex_empty;
+    futex_t   futex_full;
 
 } sp_mpsc_streambuffer;
 
