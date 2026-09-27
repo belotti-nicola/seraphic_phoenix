@@ -3,11 +3,12 @@
 #include <internal/sp_utils.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <stdlib.h>
 
-#define BUFFER_SIZE        8192
-#define THREADS               8
-#define MESSAGES         200000
-#define MESSAGES_LEN         20
+#define BUFFER_SIZE   2*1024*1024  
+#define THREADS                32
+#define MESSAGES            20000
+#define MESSAGES_LEN           20
 
 void *consumer_function(void *arg)
 {
@@ -19,10 +20,11 @@ void *consumer_function(void *arg)
 
     for (int i = 0; i< MESSAGES * THREADS ; i++)
     {
-        sp_mpsc_sb_pop(sb,buff,MESSAGES_LEN);
+        pop_exit_code = sp_mpsc_sb_pop(sb,buff,MESSAGES_LEN);
         if ( pop_exit_code == false )
         {
-            perror("PUSH FAIL");
+            perror("consumer_function fail");
+            exit(-1);
         }
     }
 
@@ -41,7 +43,8 @@ void *producers_function(void *arg)
         push_exit_code = sp_mpsc_sb_push(sb,buff,MESSAGES_LEN);
         if ( push_exit_code == false )
         {
-            perror("PUSH FAIL");
+            perror("producers_function fail");
+            exit(-1);
         }
     }
 
@@ -88,13 +91,13 @@ int main()
         }
     }
 
-    pthread_join(consumer,NULL);
-
     for( int i=0 ; i< THREADS ; i++)
     {
         pthread_t producer = producers[i];
         pthread_join(producer,NULL);
     }
+
+    pthread_join(consumer,NULL);
 
     return 0;
 }

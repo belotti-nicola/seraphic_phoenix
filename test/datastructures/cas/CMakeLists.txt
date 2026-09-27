@@ -10,6 +10,8 @@ function(add_seraphic_phoenix_test test_name source_file)
 endfunction()
 
 add_seraphic_phoenix_test(TestMPSCSBCreation        test_mpsc_sb_creation.c)
+add_seraphic_phoenix_test(TestMPSCSBSimplePush      test_mpsc_sb_simple_push.c)
+add_seraphic_phoenix_test(TestMPSCSBSimplePop       test_mpsc_sb_simple_pop.c)
 add_seraphic_phoenix_test(TestMPSCSBSimplePushPop   test_mpsc_sb_simple_push_pop.c)
 add_seraphic_phoenix_test(TestMPSCSBSimplePeekAdv   test_mpsc_sb_simple_peek_adv.c)
 add_seraphic_phoenix_test(TestMPSCSBStress          test_mpsc_stress.c)

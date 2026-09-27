@@ -17,15 +17,15 @@ bool sb_init(safe_buffer_t *sb, uint8_t *buffer, size_t buffer_size)
     return true;
 }
 
-size_t sb_copy_out(const safe_buffer_t *sb, size_t offset, uint8_t *dest, size_t len)
+bool sb_copy_out(const safe_buffer_t *sb, size_t offset, uint8_t *dest, size_t len)
 {
-    if ( sb == NULL || dest == NULL || len == 0) return 0;
+    if ( sb == NULL || dest == NULL || len == 0) return false;
 
     size_t size = sb->buffer_size;
     
-    if ( size < len) return 0;
+    if ( size < len) return false;
 
-    if ( offset > size - 1) return 0;
+    if ( offset > size - 1) return false;
 
     uint8_t *src = sb->buffer + offset;
     size_t bytes_copied = 0;
@@ -39,18 +39,18 @@ size_t sb_copy_out(const safe_buffer_t *sb, size_t offset, uint8_t *dest, size_t
 
     memcpy(dest,src,len - bytes_copied);
 
-    return len;
+    return true;
 }
 
-size_t sb_copy_in(safe_buffer_t *sb, size_t offset, const uint8_t *source, size_t len)
+bool sb_copy_in(safe_buffer_t *sb, size_t offset, const uint8_t *source, size_t len)
 {
-    if ( sb == NULL || source == NULL || len == 0 ) return 0;
+    if ( sb == NULL || source == NULL || len == 0 ) return false;
 
     size_t size = sb->buffer_size;
 
-    if ( len > size ) return 0;
+    if ( len > size ) return false;
 
-    if ( offset > size - 1) return 0;
+    if ( offset > size - 1) return false;
 
     uint8_t *ptr = sb->buffer + offset;
     size_t bytes_copied = 0;
@@ -63,6 +63,6 @@ size_t sb_copy_in(safe_buffer_t *sb, size_t offset, const uint8_t *source, size_
     }
     memcpy(ptr,source,len - bytes_copied);
 
-    return len;
+    return true;
 
 }
