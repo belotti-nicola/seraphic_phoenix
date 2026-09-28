@@ -5,25 +5,32 @@
 #include <pthread.h>
 #include <stdlib.h>
 
-#define BUFFER_SIZE   2*1024*1024  
-#define THREADS                32
-#define MESSAGES            20000
+#define BUFFER_SIZE   6*1024*1024  
+#define THREADS                 8
+#define MESSAGES            60000
 #define MESSAGES_LEN           20
 
 void *consumer_function(void *arg)
 {
-    bool pop_exit_code;
-
+    bool peek_exit_code, advance_exit_code;
+    
     sp_mpsc_streambuffer *sb = (sp_mpsc_streambuffer *)arg;
 
     uint8_t buff[MESSAGES_LEN] = {0};
 
     for (int i = 0; i< MESSAGES * THREADS ; i++)
     {
-        pop_exit_code = sp_mpsc_sb_pop(sb,buff,MESSAGES_LEN);
-        if ( pop_exit_code == false )
+        peek_exit_code = sp_mpsc_sb_peek(sb,buff,MESSAGES_LEN);
+        if ( peek_exit_code == false )
         {
-            perror("consumer_function fail");
+            perror("consumer_function peek fail");
+            exit(-1);
+        }
+
+        advance_exit_code = sp_mpsc_sb_advance(sb,MESSAGES_LEN);
+        if ( advance_exit_code == false )
+        {
+            perror("consumer_function advance fail");
             exit(-1);
         }
     }

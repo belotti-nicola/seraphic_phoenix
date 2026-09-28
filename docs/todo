@@ -1,0 +1,7 @@
+peek advance
+
+
+Stream buffer:
+- schedule better SPINS
+- EMPTY WRITING READY for slots -> producers won't compete each other
+- 0-copy

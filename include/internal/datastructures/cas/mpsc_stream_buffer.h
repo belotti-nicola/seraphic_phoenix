@@ -9,7 +9,15 @@
 #include <stdbool.h>
 #include <stdatomic.h>
 
-typedef unsigned __int128 uint128_t;
+
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__)
+    #include <immintrin.h>
+    #define CPU_PAUSE() _mm_pause()
+#elif defined(__aarch64__) || defined(_ARM_)
+    #define CPU_PAUSE() __asm__ __volatile__("yield" ::: "memory")
+#else
+    #define CPU_PAUSE() ((void)0) // Fallback vuoto se architettura sconosciuta
+#endif
 
 //16 BYTE ALIGNMENT TO ENSURE HARDWARE ATOMICITY
 typedef struct __attribute__((aligned(16))) sp_mpsc_streambuffer
