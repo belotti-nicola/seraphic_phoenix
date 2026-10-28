@@ -13,6 +13,8 @@ typedef struct sp_csvreader
     char   buffer[BUFFER_SIZE];
     char  *records[FIELDS_SIZE];
     size_t records_size;
+    size_t current_line;
+    size_t starting_line;
 
 } sp_csvreader;
 
