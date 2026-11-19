@@ -1,6 +1,6 @@
 amalgamation: 
     CARE: umbrella.h should not be included. x86 vs arm
-    ADD: release version.
+    ADD: release version in dump.
 
 peek advance check
 
