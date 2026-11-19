@@ -1,8 +1,7 @@
-#include <seraphic_phoenix.h>
+#include "seraphic_phoenix.h"
+#include "internal/sp_utils.h"
+
 #include <string.h>
-
-#include <internal/sp_utils.h>
-
 
 int main()
 {

@@ -1,6 +1,6 @@
-#include <internal/datastructures/cas/mpsc_stream_buffer.h>
-#include <internal/datastructures/utility/safe_linear_buffer.h>
-#include <internal/sp_utils.h>
+#include "internal/datastructures/cas/mpsc_stream_buffer.h"
+#include "internal/datastructures/utility/safe_linear_buffer.h"
+#include "internal/sp_utils.h"
 #include <stdbool.h>
 #include <pthread.h>
 #include <stdlib.h>

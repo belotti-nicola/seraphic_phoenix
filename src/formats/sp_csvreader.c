@@ -1,4 +1,4 @@
-#include <internal/formats/sp_csvreader.h>
+#include "internal/formats/sp_csvreader.h"
 
 bool sp_csvreader_open(sp_csvreader *reader, const char *path)
 {

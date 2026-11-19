@@ -1,4 +1,8 @@
-peek advance
+amalgamation: 
+    CARE: umbrella.h should not be included. x86 vs arm
+    ADD: release version.
+
+peek advance check
 
 
 Stream buffer:

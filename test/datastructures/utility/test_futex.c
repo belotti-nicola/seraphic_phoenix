@@ -1,6 +1,6 @@
-#include <internal/datastructures/utility/futex.h>
+#include "internal/datastructures/utility/futex.h"
+#include "internal/sp_utils.h"
 
-#include <internal/sp_utils.h>
 #include <pthread.h>
 #include <stdatomic.h>
 #include <stdbool.h>

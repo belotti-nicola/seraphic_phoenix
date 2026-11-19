@@ -1,0 +1,12 @@
+Build command:
+gcc main.c seraphic_phoenix_am.h seraphic_phoenix_am.c -o main.out
+
+Care to:
+- external target_link_libraries
+- OS based functions.
+- umbrella headers
+
+TODO:
+- list all files
+- removing test utils
+- #pragmaonces vs ifdefs

@@ -1,6 +1,6 @@
-#include <internal/datastructures/utility/safe_linear_buffer.h>
+#include "internal/datastructures/utility/safe_linear_buffer.h"
+#include "internal/sp_utils.h"
 
-#include <internal/sp_utils.h>
 #include <stdbool.h>
 
 #define BUFFER_SIZE 100

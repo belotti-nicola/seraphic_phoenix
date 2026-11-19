@@ -1,5 +1,5 @@
-#include <internal/datastructures/sp_ring_buffer.h>
-#include <internal/sp_utils.h>
+#include "internal/datastructures/sp_ring_buffer.h"
+#include "internal/sp_utils.h"
 #include <stdbool.h>
 
 #define BUFFER_SIZE 100

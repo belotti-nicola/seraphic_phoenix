@@ -1,5 +1,5 @@
-#include <internal/datastructures/cas/mpsc_stream_buffer.h>
-#include <internal/sp_utils.h>
+#include "internal/datastructures/cas/mpsc_stream_buffer.h"
+#include "internal/sp_utils.h"
 
 #define TEST        "aa"
 #define BUFFER_SIZE 100
