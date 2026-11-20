@@ -5,3 +5,4 @@ add_seraphic_phoenix_test(TestSafeBufferWrapCopyIn   test_safe_buffer_wrap_copy_
 add_seraphic_phoenix_test(TestSafeBufferWrapCopyOut  test_safe_buffer_wrap_copy_out.c)
 add_seraphic_phoenix_test(TestFutex                  test_futex.c)
 
+add_subdirectory(sp_string)

@@ -1,4 +1,4 @@
-#include "internal/datastructures/utility/safe_string.h"
+#include "internal/datastructures/utility/sp_string.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -16,7 +16,8 @@ sp_string_t spss_create(const char *buffer)
         return empty;
     }
 
-    return spss_ncreate(buffer, strlen(buffer));
+    size_t size = strlen(buffer);
+    return spss_ncreate(buffer, size);
 }
 
 sp_string_t spss_ncreate(const char *buffer, size_t buffer_size)
@@ -52,13 +53,14 @@ sp_string_t spss_ncreate(const char *buffer, size_t buffer_size)
 
             return retVal;
         }
-        
-        retVal.heap_string.heap = ptr;
-        retVal.heap_string.heap[buffer_size] = '\0';
-        retVal.heap_string.heap_max_size = incremented_size;
-        retVal.size = buffer_size | HEAP_FLAG;
 
-        memcpy(retVal.heap_string.heap, buffer, buffer_size);
+        retVal.size = buffer_size | HEAP_FLAG;
+        
+        retVal.heap_string.heap              = ptr;
+        retVal.heap_string.heap[buffer_size] = '\0';
+        retVal.heap_string.heap_max_size     = incremented_size;
+
+        memcpy(ptr, buffer, buffer_size);
 
         return retVal;
     }
@@ -177,35 +179,69 @@ bool spss_nappend_cstr(sp_string_t *dst, const char *src, size_t len)
 {
     if ( dst == NULL || src == NULL ) return false;
 
-    size_t dst_size = dst->size;
+    size_t dst_size = spss_length(dst);
 
     if ( len == 0 ) return true;
 
-    if ( dst_size + len <= SSO_SIZE - 1 )
+    size_t new_size = len + dst_size;
+
+    if ( spss_is_heap(dst) == false && new_size <= SSO_SIZE - 1)
     {
-        strncpy(dst->stack_string.stack,src,len);
-        dst->size += len;
+        char *target = dst->stack_string.stack + dst_size ;
+        strncpy( target,src,len );
+        target[new_size] = '\0';
+        dst->size = new_size;
+        
+        return true;
+    }
+
+    if ( spss_is_heap(dst) == false && new_size > SSO_SIZE - 1)
+    {
+        // switch from stack to heap!
+
+        char tmp[SSO_SIZE] = {0};
+        
+        char *target = dst->stack_string.stack;
+        strncpy( tmp,target,dst_size );
+        
+        size_t incremented_size = new_size * 1.5;
+        char *ptr = (char *)malloc(sizeof(char) * incremented_size);
+        if ( ptr == NULL ) return false;
+        
+        strncpy( ptr,tmp,dst_size );
+        
+        char *src_from_here = ptr + dst_size;
+        strncpy( src_from_here,src,len );
+        ptr[new_size] = '\0';
+
+        dst->heap_string.heap          = ptr;
+        dst->heap_string.heap_max_size = incremented_size;
+        dst->size = new_size | HEAP_FLAG;
 
         return true;
     }
 
-    if ( spss_capacity(dst) >= dst_size + len )
+    if ( spss_capacity(dst) > new_size )
     {
-        strncpy(dst->heap_string.heap,src,len);
-        dst->size += len;
+        char *target = dst->heap_string.heap + dst_size ;
+        strncpy( target,src,len );
+
+        dst->size = new_size | HEAP_FLAG;
 
         return true;
     }
 
+    size_t incremented_size = new_size * 1.5;
 
-    size_t new_size = len * 1.5;
-    void *new_ptr = malloc(new_size);
-    if ( new_ptr == NULL ) return false;
+    char *ptr = dst->heap_string.heap;
+    if ( realloc( ptr, incremented_size) == NULL ) return false;
 
-    dst->heap_string.heap = new_ptr;
-    dst->heap_string.heap_max_size = new_size;
+    strncpy( ptr + dst_size , src , len );
+    *(ptr + new_size ) = '\0';
 
-    strncpy( new_ptr,src,len );
+    dst->heap_string.heap          = ptr;
+    dst->heap_string.heap_max_size = incremented_size;
+    dst->size                      = new_size | HEAP_FLAG;
 
     return true;
 }
