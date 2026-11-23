@@ -25,6 +25,17 @@ int main()
         return 1;
     }
 
+    char expected = '2';
+    char computed = spss_back(&string_sso);
+
+    if ( computed != expected )
+    {
+        TEST_ERROR("Expected back character differs from expected one.");
+        TEST_ERROR("Computed: %02X", (unsigned char)computed);
+        TEST_ERROR("Expected: %02X", (unsigned char)expected);
+        return 1;
+    }
+
     spss_destroy(&string_sso);
 
     TEST_INFO("Test success.");

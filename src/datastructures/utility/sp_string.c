@@ -504,4 +504,26 @@ bool spss_pop_back(sp_string_t *s)
     return true;
 }
 
+bool spss_pop_front(sp_string_t *s)
+{
+    // this function could be a spss_erase scenario 
+
+    if ( s == NULL ) return false;
+
+    size_t size = spss_length(s);
+
+    if ( size == 0 ) return false;
+
+    size_t new_size = size - 1;
+
+    char *buf = spss_is_heap(s) ? s->heap_string.heap
+                                : s->stack_string.stack;
+
+    memmove(buf, buf + 1, size);
+
+    s->size = spss_is_heap(s) ? ((size - 1) | HEAP_FLAG) : (size - 1);
+    
+    return true;
+}
+
 

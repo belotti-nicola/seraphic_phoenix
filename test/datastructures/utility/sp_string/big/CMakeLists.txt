@@ -72,3 +72,8 @@ add_seraphic_phoenix_test(
     TestSPStringBigPopBack
     test_sps_big_pop_back.c
 )
+
+add_seraphic_phoenix_test(
+    TestSPStringBigPopFront
+    test_sps_big_pop_front.c
+)

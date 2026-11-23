@@ -83,6 +83,7 @@ bool        spss_set_at(sp_string_t *s, size_t index, char c);
 char        spss_front(const sp_string_t *s);
 char        spss_back(const sp_string_t *s);
 bool        spss_pop_back(sp_string_t *s);
+bool        spss_pop_front(sp_string_t *s);
 
 /*
 insertion & removal
