@@ -5,12 +5,16 @@
 
 static inline bool spss_is_heap(const sp_string_t *s) 
 {
+    if ( s == NULL ) return false;
+
     return (s->size & HEAP_FLAG) != 0;
 }
 
 static inline bool spss_is_stack(const sp_string_t *s) 
 {
-    return (spss_is_heap == false);
+    if ( s == NULL ) return false;
+    
+    return (spss_is_heap(s) == false);
 }
 
 sp_string_t spss_create(const char *buffer)
@@ -59,7 +63,7 @@ sp_string_t spss_ncreate(const char *buffer, size_t buffer_size)
             return retVal;
         }
         
-        strncpy(ptr, buffer, buffer_size);
+        memcpy(ptr, buffer, buffer_size);
         ptr[buffer_size] = '\0';
 
         retVal.size = buffer_size | HEAP_FLAG;
@@ -143,12 +147,10 @@ bool spss_append(sp_string_t *dst, const sp_string_t *src)
 {
     if ( dst == NULL || src == NULL ) return false;
 
-    const char *src_cstr = spss_cstr(src);
+    const char *src_cstr = spss_cstr(dst);
     size_t src_cstr_size = spss_length(dst);
 
-    spss_nappend_cstr(dst,src_cstr,src_cstr_size);
-
-    return true;
+    return spss_nappend_cstr(dst,src_cstr,src_cstr_size);
 }
 
 bool spss_append_cstr(sp_string_t *dst, const char *src)
@@ -170,36 +172,35 @@ bool spss_nappend_cstr(sp_string_t *dst, const char *src, size_t len)
 
     size_t new_size = len + dst_size;
 
-    if ( spss_is_heap(dst) == false && new_size <= SSO_SIZE - 1)
+    if ( spss_is_stack(dst) && new_size <= SSO_SIZE - 1)
     {
         // stack size is fine.
 
         char *target = dst->stack_string.stack + dst_size ;
-        strncpy( target,src,len );
+        
+        memcpy( target,src,len );
         target[new_size] = '\0';
+        
         dst->size = new_size;
         
         return true;
     }
 
-    if ( spss_is_heap(dst) == false && new_size > SSO_SIZE - 1)
+    if ( spss_is_stack(dst) && new_size > SSO_SIZE - 1)
     {
         // switch from stack to heap!
-
-        char tmp[SSO_SIZE] = {0};
-        
-        char *target = dst->stack_string.stack;
-        strncpy( tmp,target,dst_size );
-        
+               
         size_t incremented_size = new_size * 2;
         char *ptr = (char *)malloc(sizeof(char) * incremented_size);
         if ( ptr == NULL ) return false;
+
+        char *old_content = dst->stack_string.stack;
+        memcpy( ptr, old_content, dst_size );
         
-        strncpy( ptr,tmp,dst_size );
-        
-        char *src_from_here = ptr + dst_size;
-        strncpy( src_from_here,src,len );
-        ptr[new_size] = '\0';
+        char *new_content = ptr + dst_size;
+        memcpy( new_content, src, len );
+
+        ptr[ new_size ] = '\0';
 
         dst->heap_string.heap          = ptr;
         dst->heap_string.heap_max_size = incremented_size;
@@ -215,6 +216,8 @@ bool spss_nappend_cstr(sp_string_t *dst, const char *src, size_t len)
         char *target = dst->heap_string.heap + dst_size ;
         strncpy( target,src,len );
 
+        target[ new_size ] = '\0';
+
         dst->size = new_size | HEAP_FLAG;
 
         return true;
@@ -225,13 +228,28 @@ bool spss_nappend_cstr(sp_string_t *dst, const char *src, size_t len)
 
     size_t incremented_size = new_size * 2;
 
-    char *ptr = dst->heap_string.heap;
-    if ( realloc( ptr, incremented_size) == NULL ) return false;
+    // BIG DISCLAIMER HERE:
+    //    it is possible that source char * is the same in the destination ( or contained )
+    //    
+    //    if in this case, the realloc move the buffer in another place. 
+    //    (old pointer is not valid anymore)
+    //
+    //    ==> we compute offset for both case.
+    const char *start = dst->heap_string.heap;
+    const char *end   = start + dst_size;
+    bool aliased = ( src >= start && src < end );
 
-    strncpy( ptr + dst_size , src , len );
-    ptr[new_size] = '\0';
+    size_t offset = aliased ? (size_t)( src - start ) : 0;
 
-    dst->heap_string.heap          = ptr;
+    char *reallocated = realloc( dst->heap_string.heap, incremented_size );
+    if (  reallocated == NULL ) return false;   // old buffer is still valid
+
+    if ( aliased ) src = reallocated + offset; // aliasing scenario: update the src pointer to reallocation value
+
+    memcpy( reallocated + dst_size, src, len );
+    reallocated[new_size] = '\0';
+
+    dst->heap_string.heap          = reallocated;
     dst->heap_string.heap_max_size = incremented_size;
     dst->size                      = new_size | HEAP_FLAG;
 
@@ -242,34 +260,41 @@ bool spss_append_char(sp_string_t *dst, char c)
 {
     if (dst == NULL ) return false;
 
-    size_t dst_size = dst->size;
+    size_t dst_size = spss_length(dst);
+    size_t new_size = dst_size + 1;
 
-    if ( dst_size + 1 <= SSO_SIZE - 1 )
+    if ( spss_capacity(dst) > dst_size + 2 ) // c + '\0'
     {
-        strncpy(dst->stack_string.stack,&c,1);
-        dst->size += 1;
+        if ( spss_is_stack(dst) )
+        {
+            dst->stack_string.stack[dst_size]     = c;
+            dst->stack_string.stack[dst_size + 1] = '\0';
 
-        return true;
+            dst->size += new_size;
+
+            return true;
+        }
+        else
+        {
+            dst->heap_string.heap[dst_size]     = c;
+            dst->heap_string.heap[dst_size + 1] = '\0';
+
+            dst->size = new_size | HEAP_FLAG;
+
+            return true;
+        }
     }
 
-    if ( spss_capacity(dst) >= dst_size + 1 )
-    {
-        strncpy(dst->heap_string.heap,&c,1);
-        dst->size += 1;
+    size_t incremented_size = new_size * 2;
 
-        return true;
-    }
+    char *reallocated = realloc( dst->heap_string.heap, incremented_size );
+    if (  reallocated == NULL ) return false;
+    reallocated[ new_size - 1 ] =   c ;
+    reallocated[ new_size     ] = '\0';
 
-    size_t previous_size = dst->size;
-    size_t new_size = previous_size * 2;
-
-    void *new_ptr = malloc(new_size);
-    if ( new_ptr == NULL ) return false;
-
-    dst->heap_string.heap = new_ptr;
-    dst->heap_string.heap_max_size = new_size;
-
-    strncpy( new_ptr,&c,1 );
+    dst->heap_string.heap          = reallocated;
+    dst->heap_string.heap_max_size = incremented_size;
+    dst->size                      = new_size | HEAP_FLAG;
 
     return true;
 }
@@ -278,21 +303,27 @@ bool spss_reserve(sp_string_t *s, size_t new_cap)
 {
     if ( s == NULL ) return false;
 
-    if ( s->size >= new_cap ) return false;
+    size_t current_size = spss_length(s);
 
-    if ( SSO_SIZE >= new_cap ) return false;
+    if ( current_size >= new_cap ) return true;
+
+    if ( SSO_SIZE >= new_cap ) return true;
 
     void *ptr = malloc(sizeof(char) * new_cap);
     if ( ptr == NULL ) return false;
 
+    const char *buffer = spss_cstr(s);
+
     size_t s_size = spss_length(s);
-    if ( s_size > 0 )
+    if (   s_size > 0 )
     {
-        const char *buffer = spss_cstr(s);
-        strncpy(ptr,buffer,s_size);      
+        memcpy(ptr,buffer,s_size);      
     }
 
     s->heap_string.heap = ptr;
+    s->heap_string.heap_max_size = new_cap;
+    s->size = s_size | HEAP_FLAG;
+
 
     return true;
 }
@@ -336,15 +367,15 @@ void spss_clear(sp_string_t *string)
         return;
     }
 
-    string->size = 0;
-
     if ( spss_is_heap( string ) == true )
     {
         string->heap_string.heap[0] = '\0';
+        string->size = 0 | HEAP_FLAG;
     }
     else 
     {
         string->stack_string.stack[0] = '\0';
+        string->size = 0;
     }
 }
 
@@ -354,31 +385,37 @@ sp_string_t spss_substring(const sp_string_t *s, size_t start, size_t len)
 
     if ( s == NULL ) return retVal;
 
-    if ( start > s->size ) return retVal;
+    size_t current_size = spss_length(s);
+
+    if ( start > current_size ) return retVal;
 
     const char *buffer = spss_cstr(s) + start ;
-    return spss_ncreate(buffer,len);
+    return spss_ncreate(buffer,len - start);
 }
 
 bool spss_equals(const sp_string_t *a, const sp_string_t *b)
 {
     if ( a == NULL || b == NULL ) return false;
 
-    if ( a->size != b->size ) return false;
+    size_t a_size = spss_length(a);
+    size_t b_size = spss_length(b);
 
-    size_t size = a->size;
+    if ( a_size != b_size ) return false;
+
     const char *a_ptr = spss_cstr(a);
     const char *b_ptr = spss_cstr(b);
 
-    return strncmp(a_ptr,b_ptr,size) == 0;
+    return strncmp(a_ptr,b_ptr,a_size) == 0;
 }
 
 bool spss_equals_cstr(const sp_string_t *a, const char *b)
 {
     if ( a == NULL || b == NULL ) return false;
 
+    size_t a_len = spss_length(a);
     size_t b_len = strlen(b);
-    if ( a->size != b_len ) return false;
+    
+    if ( a_len != b_len ) return false;
 
     const char *a_ptr = spss_cstr(a);
     return strncmp(a_ptr,b,b_len) == 0;
@@ -396,4 +433,75 @@ size_t spss_find(const sp_string_t *s, const char *needle)
 
     return 0;
 }
+
+char spss_at(const sp_string_t *s, size_t index)
+{
+    if ( s == NULL ) return '\0';
+
+    if ( index >= spss_length(s)) return '\0';
+
+
+    if ( spss_is_stack(s) )
+    {
+        return s->stack_string.stack[ index ];
+    }
+
+    return s->heap_string.heap[ index ];
+}
+
+bool spss_set_at(sp_string_t *s, size_t index, char c)
+{
+    if ( s == NULL ) return false;
+
+    if ( index > spss_length(s)) return false;
+
+
+    if ( spss_is_stack(s) )
+    {
+        s->stack_string.stack[ index ] = c;
+    }
+    else
+    {
+        s->heap_string.heap[ index ] = c;
+    }
+
+    return true;
+}
+
+char spss_front(const sp_string_t *s)
+{
+    if ( s == NULL ) return '\0';
+
+    return spss_at(s,0);
+}
+
+char spss_back(const sp_string_t *s)
+{
+    if ( s == NULL ) return '\0';
+
+    size_t index = spss_length(s) - 1;
+
+    return spss_at(s,index);
+}
+
+bool spss_pop_back(sp_string_t *s)
+{
+    if ( s == NULL ) return false;
+
+    size_t size = spss_length(s);
+
+    if ( size == 0 ) return false;
+
+    size_t new_size = size - 1;
+
+    char *ptr = spss_is_stack(s) ? s->stack_string.stack : 
+                                   s->heap_string.heap;
+
+    ptr[new_size] = '\0';
+
+    s->size = spss_is_heap(s) ? (new_size | HEAP_FLAG) : new_size;
+    
+    return true;
+}
+
 

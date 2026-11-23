@@ -4,8 +4,8 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define PREFIX_SIZE 800
-#define SUFFIX_SIZE 1200
+#define PREFIX_SIZE 50
+#define SUFFIX_SIZE 500
 
 int main()
 {

@@ -1,10 +1,14 @@
+Rek
+
 amalgamation: 
     CARE: umbrella.h should not be included. x86 vs arm
-    ADD: release version in dump.
+    ADD: release version in .h dump.
 
 peek advance check
 
 32bits vs 64 bits
+
+sp_string out-param for returns.
 
 valgrind vs asan
 

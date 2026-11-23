@@ -3,7 +3,7 @@
 
 #include <string.h>
 
-#define SSO_BUFFER      "1234"
+#define SSO_BUFFER "1234"
 
 int main()
 {

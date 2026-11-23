@@ -1,25 +1,29 @@
 import os
 import re
 
-OUTPUT_DIR="../amalgamation"
-
 SOURCE_FILES = [
-    "datastructures/sp_queue.c",
     "utils/sp_utils.c",
-    "datastructures/sp_ring_buffer.c",
-    "datastructures/cas/mpsc_stream_buffer.c",
+    
     "datastructures/utility/futex.c",
     "datastructures/utility/safe_linear_buffer.c",
+    "datastructures/utility/sp_string.c",
+    "datastructures/sp_queue.c",
+    "datastructures/sp_ring_buffer.c",
+    "datastructures/cas/mpsc_stream_buffer.c",
+    
     "formats/sp_csvreader.c",
 ]
 
 HEADER_FILES = [
-    "datastructures/sp_queue.h",
     "sp_utils.h",
+
     "datastructures/utility/futex.h",
     "datastructures/utility/safe_linear_buffer.h",
+    "datastructures/utility/sp_string.h",
+    "datastructures/sp_queue.h",
     "datastructures/sp_ring_buffer.h",
     "datastructures/cas/mpsc_stream_buffer.h",
+    
     "formats/sp_csvreader.h"
 ]
 
@@ -30,6 +34,7 @@ def generate_header():
     generation_disclaimer.append("/* =================================================== */\n")
     generation_disclaimer.append("/* =================================================== */\n")
     generation_disclaimer.append("/* =====  GENERATED FILE - DO NOT EDIT DIRECTLY ====== */\n")
+    generation_disclaimer.append("/* =====          version : 1.0.0               ====== */\n")
     generation_disclaimer.append("/* =================================================== */\n")
     generation_disclaimer.append("/* =================================================== */\n")
     

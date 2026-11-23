@@ -3,21 +3,14 @@
 
 #include <string.h>
 
-#define SSO_BUFFER_SIZE 512
+#define SSO_BUFFER "12345"
 
 int main()
 {
-    char big_buffer[SSO_BUFFER_SIZE] = {0};
-    for ( int i = 0 ; i < SSO_BUFFER_SIZE - 1 ; i++ )
-    {
-        big_buffer[i] = 'a';
-    }
-    big_buffer[SSO_BUFFER_SIZE - 1] = '\0';
-
-    sp_string_t string_sso = spss_ncreate(big_buffer,SSO_BUFFER_SIZE - 1);
+    sp_string_t string_sso = spss_create(SSO_BUFFER);
 
     size_t computed_len = spss_length(&string_sso);
-    size_t expected_len = SSO_BUFFER_SIZE - 1;
+    size_t expected_len = strlen(SSO_BUFFER);
 
     if ( computed_len != expected_len )
     {

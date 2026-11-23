@@ -32,3 +32,43 @@ add_seraphic_phoenix_test(
     TestSPStringBigClone
     test_sps_clone.c
 )
+
+add_seraphic_phoenix_test(
+    TestSPStringBigAppendChar
+    test_sps_big_append_char.c
+)
+
+add_seraphic_phoenix_test(
+    TestSPStringBigAliasing
+    test_sps_big_aliasing.c
+)
+
+add_seraphic_phoenix_test(
+    TestSPStringBigAliasingWithOffset
+    test_sps_big_aliasing_with_offset.c
+)
+
+add_seraphic_phoenix_test(
+    TestSPStringBigSetAt
+    test_sps_big_set_at.c
+)
+
+add_seraphic_phoenix_test(
+    TestSPStringBigAt
+    test_sps_big_at.c
+)
+
+add_seraphic_phoenix_test(
+    TestSPStringBigFront
+    test_sps_big_front.c
+)
+
+add_seraphic_phoenix_test(
+    TestSPStringBigBack
+    test_sps_big_back.c
+)
+
+add_seraphic_phoenix_test(
+    TestSPStringBigPopBack
+    test_sps_big_pop_back.c
+)

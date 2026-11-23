@@ -27,3 +27,28 @@ add_seraphic_phoenix_test(
     TestSPStringSize
     test_sps_size_sso.c
 )
+
+add_seraphic_phoenix_test(
+    TestSPStringSSOSetAt
+    test_sps_sso_set_at.c
+)
+
+add_seraphic_phoenix_test(
+    TestSPStringSSOAt
+    test_sps_sso_at.c
+)
+
+add_seraphic_phoenix_test(
+    TestSPStringSSOFront
+    test_sps_sso_front.c
+)
+
+add_seraphic_phoenix_test(
+    TestSPStringSSOBack
+    test_sps_sso_back.c
+)
+
+add_seraphic_phoenix_test(
+    TestSPStringSSOPopBack
+    test_sps_sso_pop_back.c
+)
