@@ -14,10 +14,10 @@ int main()
     }
     big_buffer[ BIG_BUFFER_SIZE - 1 ] = '\0';
 
-    sp_string_t string_sso = spss_create(big_buffer);
+    sp_string_t string_big = spss_create(big_buffer);
 
-    size_t computed_size = spss_capacity(&string_sso);
-    size_t expected_size = ( BIG_BUFFER_SIZE - 1 ) * 1.5;
+    size_t computed_size = spss_capacity(&string_big);
+    size_t expected_size = ( BIG_BUFFER_SIZE - 1 ) * 2;
 
     if ( computed_size != expected_size )
     {
@@ -25,7 +25,27 @@ int main()
         return 1;
     }
 
-    spss_destroy(&string_sso);
+    for ( int i = 0 ; i < BIG_BUFFER_SIZE - 1 ; i++)
+    {
+        char computed_c = string_big.heap_string.heap[ i ];
+        char expected_c = big_buffer[i];
+
+        if ( computed_c != expected_c )
+        {
+            TEST_ERROR("Computed char is different from expected one at iteration %d.",i);
+            TEST_ERROR("Computed: %02X", (unsigned char)computed_c);
+            TEST_ERROR("Expected: %02X", (unsigned char)expected_c);
+            return 1;
+        }
+    }
+
+    if ( string_big.heap_string.heap[ BIG_BUFFER_SIZE - 1 ] != '\0' )
+    {
+        TEST_ERROR("Termination char is not present!");
+        return 1;
+    } 
+
+    spss_destroy(&string_big);
 
     return 0;
 }

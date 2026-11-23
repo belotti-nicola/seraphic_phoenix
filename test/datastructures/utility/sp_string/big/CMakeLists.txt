@@ -1,29 +1,34 @@
 add_seraphic_phoenix_test(
-    TestSPStringCreate
+    TestSPStringBigCreate
     test_sps_create_big.c
 )
 
 add_seraphic_phoenix_test(
-    TestSPStringNCreate
+    TestSPStringBigNCreate
     test_sps_ncreate_big.c
 )
 
 add_seraphic_phoenix_test(
-    TestSPStringCapacity
+    TestSPStringBigCapacity
     test_sps_capacity_big.c
 )
 
 add_seraphic_phoenix_test(
-    TestSPStringAppendBigNoRealloc
+    TestSPStringBigAppendBigNoRealloc
     test_sps_append_big_no_realloc.c
 )
 
 add_seraphic_phoenix_test(
-    TestSPStringAppendBigRealloc
+    TestSPStringBigAppendBigRealloc
     test_sps_append_big_realloc.c
 )
 
 add_seraphic_phoenix_test(
-    TestSPStringSizeBig
+    TestSPStringBigSizeBig
     test_sps_size_big.c
+)
+
+add_seraphic_phoenix_test(
+    TestSPStringBigClone
+    test_sps_clone.c
 )

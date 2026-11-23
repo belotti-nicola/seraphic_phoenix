@@ -4,6 +4,9 @@ amalgamation:
 
 peek advance check
 
+32bits vs 64 bits
+
+valgrind vs asan
 
 Stream buffer:
 - schedule better SPINS

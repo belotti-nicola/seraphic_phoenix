@@ -23,6 +23,26 @@ int main()
         return 1;
     }
 
+    for ( int i = 0 ; i < BIG_BUFFER - 1 ; i++)
+    {
+        char computed_c = string_big.heap_string.heap[ i ];
+        char expected_c = big_buffer[i];
+
+        if ( computed_c != expected_c )
+        {
+            TEST_ERROR("Computed char is different from expected one at iteration %d.",i);
+            TEST_ERROR("Computed: %02X", (unsigned char)computed_c);
+            TEST_ERROR("Expected: %02X", (unsigned char)expected_c);
+            return 1;
+        }
+    }
+
+    if ( string_big.heap_string.heap[ BIG_BUFFER - 1 ] != '\0' )
+    {
+        TEST_ERROR("Termination char is not present!");
+        return 1;
+    } 
+
     spss_destroy(&string_big);
 
     TEST_INFO("Test success.");

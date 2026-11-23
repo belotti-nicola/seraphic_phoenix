@@ -1,5 +1,5 @@
-#ifndef SAFE_STRING_H
-#define SAFE_STRING_H
+#ifndef SP_STRING_H
+#define SP_STRING_H
 
 #include <stdbool.h>
 #include <stdint.h>
