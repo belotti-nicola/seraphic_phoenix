@@ -26,7 +26,7 @@ int main()
     sp_string_t string = spss_create(prefix);
 
     size_t computed_size = spss_capacity(&string);
-    size_t expected_size = SSO_SIZE - 1;
+    size_t expected_size = SP_SSO_SIZE - 1;
 
     if ( computed_size != expected_size )
     {

@@ -52,3 +52,8 @@ add_seraphic_phoenix_test(
     TestSPStringSSOPopBack
     test_sps_sso_pop_back.c
 )
+
+add_seraphic_phoenix_test(
+    TestSPStringSSONInsert
+    test_spss_ninsert_sso.c
+)

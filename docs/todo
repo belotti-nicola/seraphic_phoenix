@@ -1,16 +1,24 @@
-Rek
+Next developments:
+
+
+1. Vectors (static vs incrementable)
+2. Arena allocators
+3. HashMap (static vs incrementable)
+
+Never too late to:
+    - Docs
+    - updateicons
+
+Big watch out:
 
 amalgamation: 
     CARE: umbrella.h should not be included. x86 vs arm
     ADD: release version in .h dump.
 
-peek advance check
+sp_string 
+    out-param for returns (so we can differ from OOM from empty string)
+    warnings for unused returns
 
-32bits vs 64 bits
-
-sp_string out-param for returns.
-
-valgrind vs asan
 
 Stream buffer:
 - schedule better SPINS
