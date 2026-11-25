@@ -4,6 +4,7 @@ Next developments:
 1. Vectors (static vs incrementable)
 2. Arena allocators
 3. HashMap (static vs incrementable)
+4. build sources build test recompile all ...
 
 Never too late to:
     - Docs

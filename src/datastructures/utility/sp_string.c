@@ -177,14 +177,8 @@ void spss_destroy(sp_string_t *string)
 
 const char *spss_cstr(const sp_string_t *string)
 {
-    if ( string == NULL ) return "";
-
-    if ( spss_is_heap( string ) == false )
-    {
-        return string->stack_string.stack;
-    }
-    
-    return string->heap_string.heap;
+    sp_string_t *casted = (sp_string_t *)string;
+    return spss_buffer(casted);
 }
 
 size_t spss_length(const sp_string_t *string) 
@@ -453,14 +447,15 @@ sp_string_t spss_substring(const sp_string_t *s, size_t start, size_t len)
 {
     sp_string_t retVal = {0};
 
-    if ( s == NULL ) return retVal;
+    if ( s == NULL || len == 0 ) return retVal;
 
     size_t current_size = spss_length(s);
 
     if ( start > current_size ) return retVal;
 
     const char *buffer = spss_cstr(s) + start ;
-    return spss_ncreate(buffer,len - start);
+
+    return spss_ncreate( buffer , len );
 }
 
 bool spss_equals(const sp_string_t *a, const sp_string_t *b)
@@ -867,7 +862,7 @@ size_t spss_find_first_of(const sp_string_t *s, const char *charset)
 {
     if ( s == NULL ) return 0;
 
-    char *buffer = spss_buffer((char *)s);
+    char *buffer = spss_buffer((sp_string_t *)s);
     size_t size  = spss_length(s);
 
     size_t retVal = SP_STRING_NPOS;
@@ -936,9 +931,9 @@ bool spss_ends_with(const sp_string_t *s, const char *suffix)
 
 int spss_compare(const sp_string_t *a, const sp_string_t *b)
 {
-    if ( a == NULL && b == NULL ) return 0;
+    if ( a == NULL && b == NULL ) return  0;
     if ( a == NULL )              return -1;
-    if ( b == NULL )              return 1;
+    if ( b == NULL )              return  1;
  
     return spss_compare_mem(spss_cstr(a), spss_length(a),
                             spss_cstr(b), spss_length(b));
@@ -946,9 +941,9 @@ int spss_compare(const sp_string_t *a, const sp_string_t *b)
  
 int spss_compare_cstr(const sp_string_t *a, const char *b)
 {
-    if ( a == NULL && b == NULL ) return 0;
+    if ( a == NULL && b == NULL ) return  0;
     if ( a == NULL )              return -1;
-    if ( b == NULL )              return 1;
+    if ( b == NULL )              return  1;
  
     return spss_compare_mem(spss_cstr(a), spss_length(a),
                             b,            strlen(b));
