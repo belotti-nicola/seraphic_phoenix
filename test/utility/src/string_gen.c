@@ -1,6 +1,6 @@
 #include "string_gen.h"
 
-char *string_gen(sp_gen_kind_t kind, size_t n, uint64_t seed)
+char *string_gen(gen_kind_t kind, size_t n, uint64_t seed)
 {
     char *b = (char *)malloc(n + 1);
     if ( b == NULL ) return NULL;
