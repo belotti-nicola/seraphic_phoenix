@@ -773,14 +773,30 @@ bool spss_resize(sp_string_t *s, size_t new_len, char fill)
 {
     if ( s == NULL ) return false;
 
-    if ( spss_capacity(s) > new_len )
+    if ( spss_capacity(s) == new_len ) return true;
+
+    size_t old_cap = spss_capacity(s);
+    size_t old_len = spss_length(s);
+
+    if ( new_len > old_len )
     {
+        if ( spss_ensure_capacity(s,new_len) == false ) return false;
+
+        for ( int i = 0 ; i < new_len ; i++ )
+        {
+            spss_set_at(s,i,fill);
+        } 
 
     }
-    else 
+    
+    if ( new_len < old_len )
     {
-
+        // Nothing to do here: 
+        // we keep allocated buffer if heapped
+        // stack not touched
     }
+
+    spss_set_length(s,new_len);
 
     return true;  
 }

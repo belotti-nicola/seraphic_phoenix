@@ -5,3 +5,5 @@
 #include "string_builder.h"
 
 #include "test_cases.h"
+
+#include "test_files.h"

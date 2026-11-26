@@ -6,6 +6,7 @@ Next developments:
 3. HashMap (static vs incrementable)
 4. build sources build test recompile all ...
 5. spss_resize is empty
+6. test_utils < - - - utils/.. 
 
 Never too late to:
     - Docs
