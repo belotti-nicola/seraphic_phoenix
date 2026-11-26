@@ -30,8 +30,17 @@ static inline void spss_set_length(sp_string_t *s, size_t new_len)
 {
     if ( s == NULL ) return ;
 
-    if ( spss_is_stack(s) ) s->size = new_len;
-    else                    s->size = new_len | SP_STRING_HEAP_FLAG;
+    if ( spss_is_stack(s) )
+    {
+        s->size = new_len;
+        s->stack_string.stack[new_len] = '\0';
+    }
+    else
+    {   
+        s->size = new_len | SP_STRING_HEAP_FLAG;
+        s->heap_string.heap[new_len] = '\0';
+    }   
+
 }
 
 // WARNING: may relocate the buffer (malloc/realloc). Any pointer into
@@ -686,14 +695,27 @@ bool spss_erase(sp_string_t *s, size_t pos, size_t len)
 {
     if ( s == NULL || len == 0 ) return false;
 
-    if ( pos >= spss_length(s) ) return false;
+    size_t size = spss_length(s);
+    if ( pos >= size ) return false;
 
     char *buffer = spss_buffer(s);
 
-    sp_string_t delete_this = spss_substring(s,pos,len);
-    const char *delete_this_cstr = spss_cstr(s);
+    if ( pos + len > size )
+    {
+        spss_set_length(s,pos);
+        return true;
+    }
 
-    return spss_replace(s,delete_this_cstr,"");
+    size_t remaining_bytes = size - len;
+    for ( int i = 0 ; i < remaining_bytes ; i++ )
+    {
+        char new_char = buffer[ pos + i + len ];
+        buffer[ pos + i ] = new_char; 
+    }
+
+    spss_set_length(s,size - len);
+
+    return true;
 }
 
 bool spss_replace(sp_string_t *s, const char *from, const char *to)

@@ -14,7 +14,7 @@
     printf("[TEST INFO] " fmt "\n", ##__VA_ARGS__)
 
 #define TRACE_ERROR_POSITION() \
-    printf("Error at %s:%d\n",__FILE__,__LINE__);
+    printf("Error at %s:%d\n",__FILE__,__LINE__)
 
 #define file_exists(filepath)                         file_exists_impl(filepath)
 #define test_file_exists(out)                         test_file_exists_impl(out)

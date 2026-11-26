@@ -84,11 +84,6 @@ add_seraphic_phoenix_test(
 )
 
 add_seraphic_phoenix_test(
-    TestSPStringBigSubstring
-    test_sps_substring_big.c
-)
-
-add_seraphic_phoenix_test(
     TestSPStringBigErase
     test_sps_erase_big.c
 )

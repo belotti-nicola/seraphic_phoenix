@@ -5,6 +5,7 @@ Next developments:
 2. Arena allocators
 3. HashMap (static vs incrementable)
 4. build sources build test recompile all ...
+5. spss_resize is empty
 
 Never too late to:
     - Docs

@@ -2,6 +2,7 @@ add_library(sp_test_utils STATIC
     src/string_gen.c
     src/string_builder.c
     src/string_recipe.c
+    src/test_cases.c
 )
 
 add_library(sp::test_utils ALIAS sp_test_utils)
